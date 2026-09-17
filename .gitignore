@@ -1,0 +1,14 @@
+# dependencies
+node_modules/
+
+# next
+.next/
+out/
+
+# env (never commit the real key)
+.env
+.env*.local
+
+# misc
+.DS_Store
+*.log
