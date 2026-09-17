@@ -150,6 +150,7 @@ export default function Home() {
           condition={condition}
           intensity={Math.min(1, intensity * level)}
           windSpeed={data.current.windSpeed}
+          theme={resolved}
           fx={fx}
         />
       )}

@@ -32,11 +32,13 @@ export default function ForegroundFx({
   condition,
   intensity,
   windSpeed,
+  theme,
   fx,
 }: {
   condition: WeatherCondition;
   intensity: number;
   windSpeed: number;
+  theme: "light" | "dark";
   fx: AtmosphereFx;
 }) {
   const canvasRef = useRef<HTMLCanvasElement>(null);
@@ -67,10 +69,11 @@ export default function ForegroundFx({
     resize();
     window.addEventListener("resize", resize);
 
-    const rainCount = small ? 130 : 260;
+    const rainCount = small ? 150 : 280;
     const snowCount = small ? 60 : 130;
+    // Rain spans the full viewport width (not just the left half)
     const drops: Drop[] = Array.from({ length: rainCount }, () => ({
-      x: (Math.random() - 0.5) * (w + 80),
+      x: Math.random() * w,
       y: Math.random() * h,
       len: 14 + Math.random() * 14,
       speed: 0.7 + Math.random() * 0.6,
@@ -93,8 +96,11 @@ export default function ForegroundFx({
       const e = fx.energy;
       ctx.clearRect(0, 0, w, h);
 
+      const isLight = theme === "light";
       if (c === "snow") {
-        ctx.fillStyle = "rgba(255,255,255,0.55)";
+        ctx.fillStyle = isLight ? "rgba(15,23,42,0.45)" : "rgba(255,255,255,0.55)";
+        // second pass for glow in light mode
+        const shadow = isLight;
         for (const f of flakes) {
           f.y += dt * (55 + inten * 70) * f.fall * (1 + e * 0.6);
           f.phase += dt * (1 + e * 2);
@@ -106,23 +112,33 @@ export default function ForegroundFx({
           if (f.x > w + 6) f.x = -6;
           if (f.x < -6) f.x = w + 6;
           ctx.beginPath();
+          if (shadow) {
+            ctx.shadowColor = "rgba(255,255,255,0.9)";
+            ctx.shadowBlur = 6;
+          }
           ctx.arc(f.x, f.y, f.r, 0, Math.PI * 2);
           ctx.fill();
+          if (shadow) ctx.shadowBlur = 0;
         }
       } else {
         const fall = (560 + inten * 420) * (1 + e * 1.2);
         const slant = wind * 26;
-        ctx.strokeStyle = c === "storm" ? "rgba(191,230,255,0.45)" : "rgba(159,220,255,0.35)";
-        ctx.lineWidth = 1;
+        if (isLight) {
+          ctx.strokeStyle = c === "storm" ? "rgba(15,23,42,0.45)" : "rgba(30,58,95,0.5)";
+        } else {
+          ctx.strokeStyle = c === "storm" ? "rgba(191,230,255,0.45)" : "rgba(159,220,255,0.35)";
+        }
+        ctx.lineWidth = isLight ? 1.25 : 1;
         ctx.beginPath();
         for (const d of drops) {
           d.y += dt * fall * d.speed;
           d.x += dt * wind * 140 * d.speed;
           if (d.y > h + 30) {
             d.y = -30;
-            d.x = (Math.random() - 0.5) * (w + 80);
+            d.x = Math.random() * w;
           }
           if (d.x > w + 40) d.x = -40;
+          if (d.x < -40) d.x = w + 40;
           const len = d.len * (1 + e * 0.5);
           ctx.moveTo(d.x, d.y);
           ctx.lineTo(d.x + slant * 0.12, d.y - len);
