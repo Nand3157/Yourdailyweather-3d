@@ -144,9 +144,17 @@ export function transformVc(raw: unknown, nowSec = Math.floor(Date.now() / 1000)
   const [place, ...rest] = vc.resolvedAddress.split(",").map((s) => s.trim());
   const prev = [...previous24Hours];
   const next = [...next24Hours];
-  // Guarantee 24/24 slots even at range edges (pad with nearest real values marked accordingly).
-  while (prev.length < 24 && hours.length) prev.unshift({ ...hours[0], isPast: true });
-  while (next.length < 24 && hours.length) next.push({ ...hours[hours.length - 1], isPast: false });
+  // Guarantee 24/24 slots even at range edges — pad from the nearest
+  // neighboring real hour (working outward from the window), falling back
+  // to the range edge only if neighbors are exhausted.
+  while (prev.length < 24 && hours.length) {
+    const src = hours[Math.max(0, anchorIdx - prev.length - 1)] ?? hours[0];
+    prev.unshift({ ...src, isPast: true });
+  }
+  while (next.length < 24 && hours.length) {
+    const src = hours[Math.min(hours.length - 1, anchorIdx + next.length + 1)] ?? hours[hours.length - 1];
+    next.push({ ...src, isPast: false });
+  }
 
   return {
     location: {

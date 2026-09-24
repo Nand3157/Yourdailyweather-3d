@@ -3,7 +3,6 @@
 import { useEffect, useMemo, useRef, useState } from "react";
 import { Canvas, useFrame } from "@react-three/fiber";
 import * as THREE from "three";
-import type { WeatherCondition } from "@/lib/weather/types";
 import type { HeroScene, TimeOfDay, HeroFx } from "@/lib/weather/hero";
 import { skyPaletteFor } from "@/lib/weather/sky";
 import SkyDome from "./SkyDome";
@@ -107,8 +106,7 @@ function HeroCamera({ fx, reduced }: { fx: HeroFx; reduced: boolean }) {
 // Shared fog planes for Fog scene
 function FogLayers({ fx }: { fx: HeroFx }) {
   const refs = [useRef<THREE.Mesh>(null), useRef<THREE.Mesh>(null), useRef<THREE.Mesh>(null)];
-  useFrame((state, rawDt) => {
-    const dt = Math.min(rawDt, 0.05);
+  useFrame((state) => {
     const t = state.clock.elapsedTime;
     refs.forEach((r, i) => {
       if (!r.current) return;
@@ -365,7 +363,6 @@ function HeroParticles({
 // Engine root
 // ─────────────────────────────────────────────────────
 export default function HeroEngine({
-  condition,
   scene,
   tod,
   intensity,
@@ -374,7 +371,6 @@ export default function HeroEngine({
   theme,
   quality = "full",
 }: {
-  condition: WeatherCondition;
   scene: HeroScene;
   tod: TimeOfDay;
   intensity: number;

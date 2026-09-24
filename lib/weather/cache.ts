@@ -1,13 +1,37 @@
+import { z } from "zod";
 import type { WeatherResponse } from "./types";
 
 const TTL_MS = 5 * 60 * 1000; // §33
 const mem = new Map<string, { data: WeatherResponse; at: number }>();
 
-function store() {
+// localStorage is same-origin but unvalidated by nature — parse defensively
+// so a corrupt/foreign entry can never reach the render tree.
+const cachedEntry = z.object({
+  at: z.number(),
+  data: z.object({
+    location: z.object({ name: z.string() }).passthrough(),
+    current: z.object({ temperature: z.number() }).passthrough(),
+    previous24Hours: z.array(z.object({ timestamp: z.number() }).passthrough()),
+    next24Hours: z.array(z.object({ timestamp: z.number() }).passthrough()),
+  }).passthrough(),
+});
+
+type CacheEntry = { data: WeatherResponse; at: number };
+
+function store(): Record<string, CacheEntry> {
   try {
-    if (typeof localStorage === "undefined") return null;
+    if (typeof localStorage === "undefined") return {};
     const raw = localStorage.getItem("aw-cache-v1");
-    return raw ? (JSON.parse(raw) as Record<string, { data: WeatherResponse; at: number }>) : {};
+    if (!raw) return {};
+    const parsed: unknown = JSON.parse(raw);
+    if (typeof parsed !== "object" || parsed === null) return {};
+    const out: Record<string, CacheEntry> = {};
+    for (const [k, v] of Object.entries(parsed as Record<string, unknown>)) {
+      const ok = cachedEntry.safeParse(v);
+      if (ok.success) out[k] = v as CacheEntry;
+      // malformed entries are silently dropped
+    }
+    return out;
   } catch {
     return {};
   }

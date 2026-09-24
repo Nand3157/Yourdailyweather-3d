@@ -35,7 +35,7 @@ export interface HeroFx {
 
 export function heroSceneFor(
   condition: WeatherCondition,
-  tod: TimeOfDay
+  _tod: TimeOfDay // time-of-day split happens inside the clear scene; param kept for API stability
 ): HeroScene {
   // Direct weather-driven branches
   if (condition === "rain") return "rain";

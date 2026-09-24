@@ -141,7 +141,6 @@ export default function Home() {
       {/* 3D HERO ENGINE — single entry point for all atmospheric 3D */}
       {data && effects !== "off" && (
         <HeroEngine
-          condition={condition}
           scene={scene}
           tod={tod}
           intensity={Math.min(1, intensity * level)}

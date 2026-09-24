@@ -22,21 +22,41 @@ const ELEMENTS = [
 const hits = new Map<string, number[]>();
 const RATE_LIMIT_MAX = 30; // 30 req/min/IP
 const RATE_WINDOW_MS = 60_000;
-const RATE_MAP_CAP = 10_000; // bound memory against IP-rotation abuse
+const RATE_MAP_CAP = 10_000; // hard memory bound
+// x-forwarded-for is client-controllable. Only trust it behind a platform
+// that overwrites it (Vercel); elsewhere every caller shares one bucket so
+// forged-header rotation cannot reset the budget.
+const TRUST_PROXY = process.env.VERCEL === "1";
 
-function rateLimited(ip: string): boolean {
+function clientKey(req: NextRequest): string {
+  if (TRUST_PROXY) {
+    const fwd = req.headers.get("x-forwarded-for")?.split(",")[0]?.trim();
+    if (fwd) return fwd;
+  }
+  return "global";
+}
+
+function rateLimited(key: string): boolean {
   const now = Date.now();
-  // Prune stale entries for this ip and evict dead keys wholesale so the
-  // map cannot grow without bound when unique IPs keep rotating in.
-  const fresh = (hits.get(ip) ?? []).filter((t) => now - t < RATE_WINDOW_MS);
-  if (hits.size >= RATE_MAP_CAP && !hits.has(ip)) {
+  const fresh = (hits.get(key) ?? []).filter((t) => now - t < RATE_WINDOW_MS);
+  if (hits.size >= RATE_MAP_CAP && !hits.has(key)) {
+    let evicted = false;
     for (const [k, v] of hits) {
-      if (v.every((t) => now - t >= RATE_WINDOW_MS)) hits.delete(k);
-      if (hits.size < RATE_MAP_CAP) break;
+      if (v.every((t) => now - t >= RATE_WINDOW_MS)) {
+        hits.delete(k);
+        evicted = true;
+        break;
+      }
+    }
+    // True bound: under an active flood nothing is stale, so force-evict
+    // the oldest key (Map preserves insertion order — LRU-ish).
+    if (!evicted) {
+      const oldest = hits.keys().next().value;
+      if (oldest !== undefined) hits.delete(oldest);
     }
   }
   fresh.push(now);
-  hits.set(ip, fresh);
+  hits.set(key, fresh);
   return fresh.length > RATE_LIMIT_MAX;
 }
 
@@ -45,8 +65,7 @@ function suggestions(): string[] {
 }
 
 export async function GET(req: NextRequest) {
-  const ip = req.headers.get("x-forwarded-for")?.split(",")[0]?.trim() || "local";
-  if (rateLimited(ip)) {
+  if (rateLimited(clientKey(req))) {
     return NextResponse.json({ error: "Too many requests. Please wait a moment.", suggestions: suggestions() }, { status: 429 });
   }
 
@@ -89,8 +108,10 @@ export async function GET(req: NextRequest) {
   }
 
   if (upstream.status === 400 || upstream.status === 404) {
+    // Reflect the query safely: strip control characters, clip length.
+    const shown = query.replace(/[\u0000-\u001f\u007f]/g, "").slice(0, 60);
     return NextResponse.json(
-      { error: `We couldn't find "${query}". Try one of these:`, suggestions: suggestions() },
+      { error: `We couldn't find "${shown}". Try one of these:`, suggestions: suggestions() },
       { status: 404 }
     );
   }

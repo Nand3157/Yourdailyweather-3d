@@ -1,6 +1,7 @@
 "use client";
 
 import { motion, AnimatePresence } from "motion/react";
+import { useEffect, useRef } from "react";
 import { X } from "lucide-react";
 import type { ThemePref } from "@/hooks/usePrefs";
 
@@ -19,6 +20,31 @@ interface Props {
 
 /** Slide-over settings panel (§50). */
 export default function SettingsPanel(p: Props) {
+  const closeRef = useRef<HTMLButtonElement>(null);
+  const openerRef = useRef<HTMLElement | null>(null);
+  const onCloseRef = useRef(p.onClose);
+  onCloseRef.current = p.onClose;
+
+  // Dialog keyboard citizenship: focus moves in on open, Escape closes,
+  // focus returns to the opener on exit (aria-modal promises this).
+  // Deps are [p.open] only — onClose identity churns every page render and
+  // would re-focus the close button, stealing focus from dialog controls.
+  useEffect(() => {
+    if (!p.open) return;
+    openerRef.current = document.activeElement as HTMLElement | null;
+    closeRef.current?.focus();
+    const onKey = (e: KeyboardEvent) => {
+      if (e.key === "Escape") onCloseRef.current();
+    };
+    window.addEventListener("keydown", onKey);
+    return () => {
+      window.removeEventListener("keydown", onKey);
+      // Restore synchronously — runs while the exit animation is still
+      // mounted, so it can't be lost to focus-on-unmount or rAF throttling.
+      openerRef.current?.focus();
+    };
+  }, [p.open]);
+
   return (
     <AnimatePresence>
       {p.open && (
@@ -43,7 +69,13 @@ export default function SettingsPanel(p: Props) {
           >
             <div className="mb-6 flex items-center justify-between">
               <h2 className="text-xl font-semibold">Settings</h2>
-              <button type="button" onClick={p.onClose} aria-label="Close settings" className="rounded-full p-2 transition hover:bg-white/10 active:scale-90">
+              <button
+                ref={closeRef}
+                type="button"
+                onClick={p.onClose}
+                aria-label="Close settings"
+                className="rounded-full p-2 transition hover:bg-white/10 active:scale-90 focus-visible:outline focus-visible:outline-2 focus-visible:outline-[var(--accent)]"
+              >
                 <X aria-hidden className="h-5 w-5" />
               </button>
             </div>

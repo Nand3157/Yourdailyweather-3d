@@ -1,6 +1,5 @@
 /* Atmospheric Weather service worker: offline shell + stale API fallback. */
 const SHELL = "aw-shell-v2";
-const API_TTL = 10 * 60 * 1000;
 
 self.addEventListener("install", (event) => {
   event.waitUntil(
@@ -33,7 +32,7 @@ self.addEventListener("fetch", (event) => {
         .catch(async () => {
           const hit = await caches.match(request);
           if (hit) return hit;
-          return new Response(JSON.stringify({ error: "You're offline or the weather service is unreachable.", suggestions: ["Ahmedabad", "Mumbai", "London", "Tokyo", "New York"] }), { status: 504, headers: { "content-type": "application/json" } });
+          return new Response(JSON.stringify({ error: "The request timed out. Check your connection, then refresh.", suggestions: ["Ahmedabad", "Mumbai", "London", "Tokyo", "New York"] }), { status: 504, headers: { "content-type": "application/json" } });
         })
     );
     return;
