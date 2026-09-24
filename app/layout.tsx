@@ -37,11 +37,17 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
           Skip to weather
         </a>
         {children}
-        <script
-          dangerouslySetInnerHTML={{
-            __html: `if('serviceWorker' in navigator){window.addEventListener('load',()=>{navigator.serviceWorker.register('/sw.js').catch(()=>{});});}`,
-          }}
-        />
+        {/* Production only: a dev-registered SW serves stale chunks on every
+            hot reload and caches APIs out from under the app. The NODE_ENV gate
+            must live in JSX (where the bundler replaces it), never inside the
+            inline string — process.env is undefined at runtime there. */}
+        {process.env.NODE_ENV === "production" && (
+          <script
+            dangerouslySetInnerHTML={{
+              __html: `if('serviceWorker' in navigator){window.addEventListener('load',()=>{navigator.serviceWorker.register('/sw.js').catch(()=>{});});}`,
+            }}
+          />
+        )}
       </body>
     </html>
   );

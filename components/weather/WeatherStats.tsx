@@ -15,13 +15,13 @@ function Card({ icon, label, value, sub, valueLabel, index }: {
       whileInView={{ opacity: 1, y: 0 }}
       viewport={{ once: true, margin: "-40px" }}
       transition={{ delay: index * 0.06, duration: 0.4 }}
-      className="glass-soft p-4 text-left transition-transform hover:-translate-y-[3px] md:p-5"
+      className="glass-soft card-lift p-4 text-left md:p-5"
     >
-      <div className="flex items-center gap-2 text-sm opacity-70">
-        {icon}
-        <span>{label}</span>
+      <div className="flex items-center gap-2">
+        <span className="text-[var(--accent)]">{icon}</span>
+        <span className="kicker">{label}</span>
       </div>
-      <p className="mt-2 text-2xl font-semibold md:text-3xl" aria-label={valueLabel}>
+      <p className="tabular mt-3 text-2xl font-semibold md:text-3xl" aria-label={valueLabel}>
         {value}
       </p>
       <p className="text-soft mt-1 text-sm">{sub}</p>
@@ -79,8 +79,8 @@ export default function WeatherStats({ current, unit }: { current: CurrentWeathe
       <dl className="glass mt-3 grid grid-cols-2 gap-px overflow-hidden !p-0 sm:grid-cols-4">
         {extra.map(([k, v, label]) => (
           <div key={k} className="bg-transparent px-4 py-3">
-            <dt className="text-soft text-xs uppercase tracking-widest">{k}</dt>
-            <dd className="mt-1 text-lg font-medium" aria-label={label}>{v}</dd>
+            <dt className="kicker">{k}</dt>
+            <dd className="tabular mt-1.5 text-lg font-medium" aria-label={label}>{v}</dd>
           </div>
         ))}
       </dl>

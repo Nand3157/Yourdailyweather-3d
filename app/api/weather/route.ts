@@ -8,6 +8,7 @@ const querySchema = z.object({
   location: z.string().trim().min(1).max(120).optional(),
   lat: z.coerce.number().min(-90).max(90).optional(),
   lon: z.coerce.number().min(-180).max(180).optional(),
+  scene: z.string().trim().max(24).optional(), // demo-mode scene override
 });
 
 const ELEMENTS = [
@@ -19,12 +20,24 @@ const ELEMENTS = [
 
 /** Tiny in-memory rate limiter (per-instance; Vercel-safe best effort). */
 const hits = new Map<string, number[]>();
+const RATE_LIMIT_MAX = 30; // 30 req/min/IP
+const RATE_WINDOW_MS = 60_000;
+const RATE_MAP_CAP = 10_000; // bound memory against IP-rotation abuse
+
 function rateLimited(ip: string): boolean {
   const now = Date.now();
-  const arr = (hits.get(ip) ?? []).filter((t) => now - t < 60_000);
-  arr.push(now);
-  hits.set(ip, arr);
-  return arr.length > 30; // 30 req/min/IP
+  // Prune stale entries for this ip and evict dead keys wholesale so the
+  // map cannot grow without bound when unique IPs keep rotating in.
+  const fresh = (hits.get(ip) ?? []).filter((t) => now - t < RATE_WINDOW_MS);
+  if (hits.size >= RATE_MAP_CAP && !hits.has(ip)) {
+    for (const [k, v] of hits) {
+      if (v.every((t) => now - t >= RATE_WINDOW_MS)) hits.delete(k);
+      if (hits.size < RATE_MAP_CAP) break;
+    }
+  }
+  fresh.push(now);
+  hits.set(ip, fresh);
+  return fresh.length > RATE_LIMIT_MAX;
 }
 
 function suggestions(): string[] {
@@ -54,7 +67,7 @@ export async function GET(req: NextRequest) {
       return NextResponse.json({ error: "Weather service is not configured.", suggestions: suggestions() }, { status: 500 });
     }
     const { demoResponse } = await import("@/lib/weather/demo");
-    return NextResponse.json(demoResponse(query), { headers: { "x-weather-demo": "1" } });
+    return NextResponse.json(demoResponse(query, parsed.data.scene), { headers: { "x-weather-demo": "1" } });
   }
 
   const today = new Date();

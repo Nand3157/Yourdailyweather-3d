@@ -11,6 +11,10 @@
   --ink: #ffffff;
   --ink-soft: rgba(255, 255, 255, 0.65);
   --accent: #7dd3fc;
+  --accent-2: #a78bfa; /* duotone partner — violet */
+  --bevel-hi: rgba(255, 255, 255, 0.14);
+  --bevel-lo: rgba(2, 6, 23, 0.45);
+  --glow: rgba(125, 211, 252, 0.22);
 }
 
 .light {
@@ -21,11 +25,18 @@
   --ink: #0b1220;
   --ink-soft: rgba(11, 18, 32, 0.62);
   --accent: #0284c7;
+  --accent-2: #7c3aed;
+  --bevel-hi: rgba(255, 255, 255, 0.9);
+  --bevel-lo: rgba(15, 23, 42, 0.08);
+  --glow: rgba(2, 132, 199, 0.16);
 }
 
 .light .glass,
 .light .glass-soft {
-  box-shadow: 0 8px 32px rgba(15, 23, 42, 0.1);
+  box-shadow:
+    inset 0 1px 0 var(--bevel-hi),
+    inset 0 -1px 0 var(--bevel-lo),
+    0 8px 32px rgba(15, 23, 42, 0.1);
 }
 
 .light .skeleton {
@@ -57,18 +68,37 @@ body {
 
 .glass {
   background: var(--glass);
-  backdrop-filter: blur(24px);
-  -webkit-backdrop-filter: blur(24px);
+  backdrop-filter: blur(24px) saturate(1.35);
+  -webkit-backdrop-filter: blur(24px) saturate(1.35);
   border: 1px solid var(--stroke);
   border-radius: 24px;
+  box-shadow:
+    inset 0 1px 0 var(--bevel-hi),
+    inset 0 -1px 0 var(--bevel-lo);
 }
 
 .glass-soft {
   background: var(--glass);
-  backdrop-filter: blur(16px);
-  -webkit-backdrop-filter: blur(16px);
+  backdrop-filter: blur(16px) saturate(1.25);
+  -webkit-backdrop-filter: blur(16px) saturate(1.25);
   border: 1px solid var(--stroke);
   border-radius: 20px;
+  box-shadow:
+    inset 0 1px 0 var(--bevel-hi),
+    inset 0 -1px 0 var(--bevel-lo);
+}
+
+/* Card recipe: beveled glass + accent glow on hover. */
+.card-lift {
+  transition: transform 0.35s cubic-bezier(0.22, 1, 0.36, 1), box-shadow 0.35s ease, border-color 0.35s ease;
+}
+.card-lift:hover {
+  transform: translateY(-3px);
+  border-color: color-mix(in srgb, var(--accent) 45%, var(--stroke));
+  box-shadow:
+    inset 0 1px 0 var(--bevel-hi),
+    inset 0 -1px 0 var(--bevel-lo),
+    0 12px 40px -12px var(--glow);
 }
 
 .text-soft {
@@ -80,6 +110,48 @@ body {
   line-height: 1;
   font-weight: 200;
   letter-spacing: -0.04em;
+  text-shadow: 0 0 48px var(--glow);
+}
+.light .temp-display {
+  text-shadow: none;
+}
+
+/* Display numerals: tabular figures keep stats & charts steady. */
+.tabular {
+  font-variant-numeric: tabular-nums;
+}
+
+/* Section kicker — one consistent voice for card headings. */
+.kicker {
+  font-size: 0.6875rem;
+  font-weight: 600;
+  letter-spacing: 0.22em;
+  text-transform: uppercase;
+  opacity: 0.62;
+}
+
+/* Duotone accent underline for card headings. */
+.kicker::after {
+  content: "";
+  display: block;
+  width: 28px;
+  height: 2px;
+  margin-top: 6px;
+  border-radius: 2px;
+  background: linear-gradient(90deg, var(--accent), var(--accent-2));
+}
+
+/* Recharts canvases get a soft aura so data feels part of the atmosphere. */
+.chart-glow svg {
+  filter: drop-shadow(0 0 14px var(--glow));
+}
+
+/* Wordmark gradient — the only gradient text in the product. */
+.wordmark {
+  background: linear-gradient(90deg, var(--ink), var(--accent));
+  -webkit-background-clip: text;
+  background-clip: text;
+  color: transparent;
 }
 
 /* Skeleton shimmer */
@@ -105,6 +177,40 @@ body {
 :focus-visible {
   outline: 2px solid var(--accent);
   outline-offset: 2px;
+}
+
+::selection {
+  background: color-mix(in srgb, var(--accent) 35%, transparent);
+}
+
+/* Atmosphere intensity slider — track + thumb match the duotone. */
+input[type="range"] {
+  -webkit-appearance: none;
+  appearance: none;
+  height: 6px;
+  border-radius: 999px;
+  background: linear-gradient(90deg, var(--accent), var(--accent-2));
+  outline-offset: 6px;
+}
+input[type="range"]::-webkit-slider-thumb {
+  -webkit-appearance: none;
+  appearance: none;
+  width: 18px;
+  height: 18px;
+  border-radius: 50%;
+  background: var(--ink);
+  border: 2px solid var(--glass-strong);
+  box-shadow: 0 0 0 4px var(--glow);
+  cursor: pointer;
+}
+input[type="range"]::-moz-range-thumb {
+  width: 18px;
+  height: 18px;
+  border-radius: 50%;
+  background: var(--ink);
+  border: 2px solid var(--glass-strong);
+  box-shadow: 0 0 0 4px var(--glow);
+  cursor: pointer;
 }
 
 /* Horizontal timeline scroll */

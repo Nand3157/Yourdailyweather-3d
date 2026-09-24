@@ -30,9 +30,9 @@ export default function TemperatureChart({ previous, next, timezone, unit }: Pro
 
   return (
     <section aria-label="Temperature graph" className="mx-auto w-full max-w-6xl px-4 pt-6">
-      <div className="glass p-4 md:p-5">
+      <div className="glass chart-glow p-4 md:p-5">
         <div className="mb-2 flex items-baseline justify-between">
-          <h2 className="text-sm font-semibold uppercase tracking-[0.2em] opacity-70">Temperature · 48 hours</h2>
+          <h2 className="kicker">Temperature · 48 hours</h2>
           <span className="text-xs opacity-50">°{unit}</span>
         </div>
         <div className="h-56 w-full md:h-64" role="img" aria-label={`Temperature over 48 hours in degrees ${unit}. Past shown in slate, future in sky blue.`}>

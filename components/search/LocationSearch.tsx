@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useRef, useState } from "react";
+import { useState } from "react";
 import { Search, X, LocateFixed } from "lucide-react";
 
 interface Props {
@@ -14,14 +14,7 @@ interface Props {
 export default function LocationSearch({ onSearch, onLocate, loading, locating }: Props) {
   const [value, setValue] = useState("");
   const [active, setActive] = useState(-1);
-  const timer = useRef<ReturnType<typeof setTimeout> | null>(null);
   const examples = ["Ahmedabad", "Mumbai", "London", "New York", "Tokyo", "Dubai"];
-
-  useEffect(() => {
-    return () => {
-      if (timer.current) clearTimeout(timer.current);
-    };
-  }, []);
 
   const submit = (v = value) => {
     const q = v.trim();
@@ -52,9 +45,6 @@ export default function LocationSearch({ onSearch, onLocate, loading, locating }
           onChange={(e) => {
             setValue(e.target.value);
             setActive(-1);
-            if (timer.current) clearTimeout(timer.current);
-            // Debounce: keep previous weather while typing; submit on Enter (§6).
-            timer.current = setTimeout(() => {}, 400);
           }}
           onKeyDown={(e) => {
             if (e.key === "Enter") submit(active >= 0 ? examples[active] : value);

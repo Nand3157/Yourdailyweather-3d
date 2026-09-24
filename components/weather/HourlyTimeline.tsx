@@ -39,7 +39,7 @@ export default function HourlyTimeline({
       whileInView={{ opacity: 1, y: 0 }}
       viewport={{ once: true }}
       transition={{ delay: Math.min(i * 0.02, 0.4) }}
-      className={`flex w-[76px] shrink-0 snap-center flex-col items-center gap-1.5 rounded-2xl border px-2 py-3 text-center ${
+      className={`flex w-[76px] shrink-0 snap-center flex-col items-center gap-1.5 rounded-2xl border px-2 py-3 text-center transition-transform hover:-translate-y-0.5 ${
         accent === "now"
           ? "border-sky-300/60 bg-sky-400/20 font-semibold shadow-[0_0_24px_rgba(56,189,248,0.35)]"
           : "border-white/10 bg-white/5 opacity-75"
@@ -58,10 +58,10 @@ export default function HourlyTimeline({
   return (
     <section aria-label="Hourly timeline: previous 24 hours, now, next 24 hours" className="mx-auto w-full max-w-6xl px-4 pt-6">
       <div className="glass p-4 md:p-5">
-        <div className="mb-3 flex items-center justify-between text-xs uppercase tracking-[0.2em] opacity-60">
-          <span>← Previous 24h</span>
-          <h2 className="text-sm font-semibold tracking-normal text-current opacity-100">Hour by hour</h2>
-          <span>Next 24h →</span>
+        <div className="mb-3 flex items-center justify-between">
+          <span className="kicker">← Previous 24h</span>
+          <h2 className="text-sm font-semibold tracking-normal">Hour by hour</h2>
+          <span className="kicker">Next 24h →</span>
         </div>
         <div className="timeline-scroll flex snap-x gap-2 overflow-x-auto pb-2" role="list" tabIndex={0} aria-label="Scrollable hourly forecast">
           {previous.map((h, i) => renderHour(h, "past", i))}

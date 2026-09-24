@@ -12,6 +12,8 @@ npm run dev
 
 Open http://localhost:3000. Without a key, dev mode serves a clearly-marked demo payload (`demo: true`); production without a key returns a friendly error.
 
+In demo mode, `?scene=storm|rain|snow|fog|cloudy|wind|clear-day|clear-sunset|clear-night` previews any 3D atmosphere scene.
+
 ## Deploy (Vercel)
 
 1. Import the repo, framework preset Next.js.
@@ -21,7 +23,7 @@ Open http://localhost:3000. Without a key, dev mode serves a clearly-marked demo
 ## Scripts
 
 - `npm run dev` / `build` / `start` / `lint`
-- `npm test` — unit tests for condition mapping, units, mood, and previous/next-24h transform
+- `npm test` — unit tests for condition mapping, units, mood, hero scene branching, and previous/next-24h transform
 
 ## API
 

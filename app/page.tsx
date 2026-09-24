@@ -3,11 +3,11 @@
 import { useMemo, useRef, useState } from "react";
 import dynamic from "next/dynamic";
 import { motion } from "motion/react";
-import type { AtmosphereFx } from "@/components/weather/WeatherScene3D";
 import { Share2 } from "lucide-react";
 import { useWeather } from "@/hooks/useWeather";
 import { useFavorites, useUnit, useThemePref, useEffectsPref, useIntensity } from "@/hooks/usePrefs";
 import { mapCondition } from "@/lib/weather/conditions";
+import { resolveHeroInput, type HeroFx } from "@/lib/weather/hero";
 import Header from "@/components/layout/Header";
 import MobileNav from "@/components/layout/MobileNav";
 import WeatherBackground from "@/components/weather/WeatherBackground";
@@ -21,7 +21,7 @@ import WindCompass from "@/components/weather/WindCompass";
 import FavoriteLocations from "@/components/favorites/FavoriteLocations";
 import SettingsPanel from "@/components/settings/SettingsPanel";
 
-const WeatherScene3D = dynamic(() => import("@/components/weather/WeatherScene3D"), {
+const HeroEngine = dynamic(() => import("@/components/weather/HeroEngine"), {
   ssr: false,
   loading: () => null,
 });
@@ -64,9 +64,10 @@ export default function Home() {
   const [locating, setLocating] = useState(false);
   const [shared, setShared] = useState(false);
 
-  // Shared interaction channel to the 3D scene (mutable, no re-renders).
-  const fxRef = useRef<AtmosphereFx | null>(null);
-  if (!fxRef.current) fxRef.current = { pulse: 0, energy: 0, tpx: 0, tpy: 0, px: 0, py: 0 };
+  // Shared interaction channel to the 3D HERO ENGINE (mutable, no re-renders).
+  // Weather API Data → Weather State + Time of Day → 3D HERO ENGINE → Scroll+Mouse → Camera/Particle
+  const fxRef = useRef<HeroFx | null>(null);
+  if (!fxRef.current) fxRef.current = { pulse: 0, energy: 0, tpx: 0, tpy: 0, px: 0, py: 0, scroll: 0, scrollY: 0, sScroll: 0 };
   const fx = fxRef.current;
   const downPos = useRef<{ x: number; y: number } | null>(null);
 
@@ -88,6 +89,12 @@ export default function Home() {
     [data]
   );
   const nowEpoch = data?.current.datetimeEpoch ?? Math.floor(Date.now() / 1000);
+  const sunriseEpoch = useMemo(() => dayEpoch(data?.sunrise, nowEpoch), [data?.sunrise, nowEpoch]);
+  const sunsetEpoch = useMemo(() => dayEpoch(data?.sunset, nowEpoch), [data?.sunset, nowEpoch]);
+  const { tod, scene } = useMemo(
+    () => resolveHeroInput(condition, nowEpoch, sunriseEpoch, sunsetEpoch),
+    [condition, nowEpoch, sunriseEpoch, sunsetEpoch]
+  );
   const intensity = useMemo(() => {
     if (!data) return 0.4;
     return Math.min(1, data.current.precipitationProbability / 100 + data.current.precipitation / 5);
@@ -130,19 +137,18 @@ export default function Home() {
 
   return (
     <>
-      <WeatherBackground
-        condition={condition}
-        sunriseEpoch={dayEpoch(data?.sunrise, nowEpoch)}
-        sunsetEpoch={dayEpoch(data?.sunset, nowEpoch)}
-        nowEpoch={nowEpoch}
-        theme={resolved}
-      />
+      <WeatherBackground condition={condition} sunriseEpoch={sunriseEpoch} sunsetEpoch={sunsetEpoch} nowEpoch={nowEpoch} theme={resolved} />
+      {/* 3D HERO ENGINE — single entry point for all atmospheric 3D */}
       {data && effects !== "off" && (
-        <WeatherScene3D
+        <HeroEngine
           condition={condition}
+          scene={scene}
+          tod={tod}
           intensity={Math.min(1, intensity * level)}
           windSpeed={data.current.windSpeed}
           fx={fx}
+          theme={resolved}
+          quality={effects === "reduced" ? "reduced" : "full"}
         />
       )}
       {data && effects === "full" && (condition === "rain" || condition === "storm" || condition === "snow") && (

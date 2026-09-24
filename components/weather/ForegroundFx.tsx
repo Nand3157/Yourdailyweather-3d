@@ -2,7 +2,7 @@
 
 import { useEffect, useRef } from "react";
 import type { WeatherCondition } from "@/lib/weather/types";
-import type { AtmosphereFx } from "./WeatherScene3D";
+import type { HeroFx } from "@/lib/weather/hero";
 
 interface Drop {
   x: number;
@@ -39,7 +39,7 @@ export default function ForegroundFx({
   intensity: number;
   windSpeed: number;
   theme: "light" | "dark";
-  fx: AtmosphereFx;
+  fx: HeroFx;
 }) {
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const cfgRef = useRef({ condition, intensity, windSpeed });

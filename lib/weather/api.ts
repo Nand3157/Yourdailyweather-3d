@@ -18,7 +18,12 @@ export async function fetchWeather(location: string, opts?: { force?: boolean })
   const q = location.trim();
   if (!q) throw new WeatherApiError("Enter a city, address or postcode.", 400);
 
-  if (!opts?.force) {
+  // `?scene=` (demo mode only) travels through to the proxy for scene previews.
+  // Scene payloads bypass the cache entirely so scene switching is always live.
+  const scene = typeof window !== "undefined" ? new URLSearchParams(window.location.search).get("scene") : null;
+  const qs = scene ? `&scene=${encodeURIComponent(scene)}` : "";
+
+  if (!opts?.force && !scene) {
     const hit = getCached(q);
     if (hit) {
       // Refresh silently in the background; caller keeps instant UI.
@@ -27,7 +32,22 @@ export async function fetchWeather(location: string, opts?: { force?: boolean })
     }
   }
 
-  const res = await fetch(`/api/weather?location=${encodeURIComponent(q)}`, { cache: "no-store" });
+  let res: Response;
+  try {
+    // Never leave the user on an endless skeleton: give up after 12s.
+    res = await fetch(`/api/weather?location=${encodeURIComponent(q)}${qs}`, {
+      cache: "no-store",
+      signal: AbortSignal.timeout(12_000),
+    });
+  } catch (e) {
+    const stale = getStale(q);
+    if (stale) return stale;
+    throw new WeatherApiError(
+      "The request timed out. Check your connection, then refresh.",
+      0,
+      ["Ahmedabad", "Mumbai", "London", "Tokyo", "New York"]
+    );
+  }
   if (!res.ok) {
     const stale = getStale(q);
     if (stale) return stale;
@@ -40,7 +60,7 @@ export async function fetchWeather(location: string, opts?: { force?: boolean })
     throw new WeatherApiError(body.error ?? "Weather request failed.", res.status, body.suggestions ?? []);
   }
   const data = (await res.json()) as WeatherResponse;
-  setCached(q, data);
+  if (!scene) setCached(q, data);
   return data;
 }
 

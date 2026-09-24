@@ -19,7 +19,6 @@ export function useWeather() {
   const [state, setState] = useState<State>({ data: null, loading: true, refreshing: false, error: null, location: FALLBACK, updatedAgo: "" });
   const [usingGeo, setUsingGeo] = useState(false);
   const locRef = useRef(FALLBACK);
-  const askedGeo = useRef(false);
 
   const safeGet = (k: string): string | null => {
     try {
@@ -45,11 +44,11 @@ export function useWeather() {
 
   const refresh = useCallback(() => load(locRef.current, { force: true }), [load]);
 
-  // Initial: geolocate once, else fallback (§7). Never nag.
+  // Initial: geolocate, else fallback (§7). Never nag.
+  // NOTE: no mount-ref guard here — StrictMode intentionally double-invokes
+  // effects, and each run must own its own fallback timer (cleanup cancels it).
   useEffect(() => {
     if (safeGet("aw-geo") === "1") setUsingGeo(true);
-    if (askedGeo.current) return;
-    askedGeo.current = true;
     let cancelled = false;
     const fallbackTimer = setTimeout(() => {
       if (!cancelled) void load(FALLBACK);

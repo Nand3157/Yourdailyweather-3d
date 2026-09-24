@@ -16,10 +16,10 @@ export default function RainChart({ hours, timezone }: { hours: HourlyWeather[];
 
   return (
     <section aria-label="Chance of rain" className="mx-auto w-full max-w-6xl px-4 pt-6">
-      <div className="glass p-4 md:p-5">
+      <div className="glass chart-glow p-4 md:p-5">
         <div className="mb-2 flex items-baseline justify-between">
-          <h2 className="text-sm font-semibold uppercase tracking-[0.2em] opacity-70">Chance of rain</h2>
-          <span className="text-xs opacity-50">Peak {max}%</span>
+          <h2 className="kicker">Chance of rain</h2>
+          <span className="tabular text-xs opacity-50">Peak {max}%</span>
         </div>
         <div className="h-40 w-full" role="img" aria-label={`Hourly rain probability, peaking at ${max} percent.`}>
           <ResponsiveContainer width="100%" height="100%">

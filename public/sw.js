@@ -1,5 +1,5 @@
 /* Atmospheric Weather service worker: offline shell + stale API fallback. */
-const SHELL = "aw-shell-v1";
+const SHELL = "aw-shell-v2";
 const API_TTL = 10 * 60 * 1000;
 
 self.addEventListener("install", (event) => {
@@ -19,16 +19,22 @@ self.addEventListener("fetch", (event) => {
   if (request.method !== "GET") return;
   const url = new URL(request.url);
 
-  // API: network-first, fall back to cache when offline (§28).
+  // API: network-first with its own timeout, fall back to cache (§28).
+  // The SW must never hang a page fetch: dead networks resolve to a real
+  // 504 JSON so the app's error state can engage.
   if (url.pathname.startsWith("/api/weather")) {
     event.respondWith(
-      fetch(request)
+      fetch(request, { signal: AbortSignal.timeout(10_000) })
         .then((res) => {
           const copy = res.clone();
           caches.open(SHELL).then((c) => c.put(request, copy)).catch(() => {});
           return res;
         })
-        .catch(() => caches.match(request).then((hit) => hit || Response.error()))
+        .catch(async () => {
+          const hit = await caches.match(request);
+          if (hit) return hit;
+          return new Response(JSON.stringify({ error: "You're offline or the weather service is unreachable.", suggestions: ["Ahmedabad", "Mumbai", "London", "Tokyo", "New York"] }), { status: 504, headers: { "content-type": "application/json" } });
+        })
     );
     return;
   }

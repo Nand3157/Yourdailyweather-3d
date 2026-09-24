@@ -30,7 +30,7 @@ export default function Header(p: Props) {
         <div className="flex items-center gap-2" aria-label="Atmospheric Weather home">
           <CloudSun aria-hidden className="h-7 w-7 text-amber-300" />
           <div className="leading-none">
-            <p className="text-sm font-bold tracking-[0.22em]">ATMOSPHERIC</p>
+            <p className="wordmark text-sm font-bold tracking-[0.22em]">ATMOSPHERIC</p>
             <p className="text-[11px] tracking-[0.34em] opacity-60">WEATHER</p>
           </div>
         </div>

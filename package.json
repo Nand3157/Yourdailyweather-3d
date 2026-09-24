@@ -6,8 +6,8 @@
     "dev": "next dev",
     "build": "next build",
     "start": "next start",
-    "lint": "next lint",
-    "test": "node --test tests/weather.test.mjs tests/transform.test.mjs"
+    "lint": "eslint .",
+    "test": "node --test tests/weather.test.mjs tests/transform.test.mjs tests/hero.test.mjs tests/sky.test.mjs"
   },
   "dependencies": {
     "@react-three/fiber": "^9.7.0",

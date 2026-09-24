@@ -38,10 +38,24 @@ export default function SunArc({ sunrise, sunset, nowEpoch }: { sunrise: string;
   const cy = 92 - 78 * Math.sin(angle);
 
   return (
-    <div className="glass-soft p-4 md:p-5" role="img" aria-label={`Sunrise ${fmt(sunrise)}, sunset ${fmt(sunset)}`}>
-      <h3 className="mb-1 text-sm font-semibold uppercase tracking-[0.2em] opacity-70">Sun path</h3>
+    <div className="glass-soft card-lift p-4 md:p-5" role="img" aria-label={`Sunrise ${fmt(sunrise)}, sunset ${fmt(sunset)}`}>
+      <h3 className="kicker mb-1">Sun path</h3>
       <svg viewBox="0 0 200 100" className="w-full" aria-hidden>
-        <path d="M 20 92 A 80 78 0 0 1 180 92" fill="none" stroke="var(--ink-soft)" strokeOpacity="0.5" strokeWidth="2" strokeDasharray="5 5" />
+        <defs>
+          <linearGradient id="sunArcGrad" x1="0" y1="0" x2="1" y2="0">
+            <stop offset="0%" stopColor="#FBBF24" />
+            <stop offset="100%" stopColor="var(--accent-2, #a78bfa)" />
+          </linearGradient>
+          <filter id="sunGlow" x="-60%" y="-60%" width="220%" height="220%">
+            <feGaussianBlur stdDeviation="6" result="b" />
+            <feMerge>
+              <feMergeNode in="b" />
+              <feMergeNode in="SourceGraphic" />
+            </feMerge>
+          </filter>
+        </defs>
+        <path d="M 20 92 A 80 78 0 0 1 180 92" fill="none" stroke="url(#sunArcGrad)" strokeOpacity="0.55" strokeWidth="2.5" strokeLinecap="round" />
+        <circle cx={cx} cy={cy} r="16" fill="#FBBF24" opacity="0.22" filter="url(#sunGlow)" />
         <motion.circle
           cx={cx}
           cy={cy}
@@ -51,7 +65,6 @@ export default function SunArc({ sunrise, sunset, nowEpoch }: { sunrise: string;
           animate={{ cx, cy }}
           transition={{ type: "spring", stiffness: 60, damping: 15 }}
         />
-        <circle cx={cx} cy={cy} r="14" fill="#FBBF24" opacity="0.25" />
       </svg>
       <div className="mt-1 flex items-center justify-between text-sm">
         <span className="flex items-center gap-1.5"><Sunrise aria-hidden className="h-4 w-4 text-amber-300" /> {fmt(sunrise)}</span>
