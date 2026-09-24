@@ -18,7 +18,7 @@ export default function RainChart({ hours, timezone }: { hours: HourlyWeather[];
     <section aria-label="Chance of rain" className="mx-auto w-full max-w-6xl px-4 pt-6">
       <div className="glass chart-glow p-4 md:p-5">
         <div className="mb-2 flex items-baseline justify-between">
-          <h2 className="kicker">Chance of rain</h2>
+          <h2 className="kicker kicker-rule">Chance of rain</h2>
           <span className="tabular text-xs opacity-50">Peak {max}%</span>
         </div>
         <div className="h-40 w-full" role="img" aria-label={`Hourly rain probability, peaking at ${max} percent.`}>
@@ -27,7 +27,16 @@ export default function RainChart({ hours, timezone }: { hours: HourlyWeather[];
               <XAxis dataKey="label" tick={{ fill: "var(--ink-soft)", fontSize: 11 }} interval={5} tickLine={false} axisLine={false} />
               <YAxis tick={{ fill: "var(--ink-soft)", fontSize: 11 }} tickLine={false} axisLine={false} domain={[0, 100]} tickFormatter={(v: number) => `${v}%`} />
               <Tooltip
-                contentStyle={{ background: "rgba(7,17,31,0.92)", border: "1px solid rgba(255,255,255,0.15)", borderRadius: 12, color: "#fff" }}
+                contentStyle={{
+                  background: "var(--sheet)",
+                  border: "1px solid var(--stroke)",
+                  borderRadius: 12,
+                  color: "var(--ink)",
+                  backdropFilter: "blur(12px)",
+                  WebkitBackdropFilter: "blur(12px)",
+                  boxShadow: "0 12px 32px -12px rgba(2, 6, 23, 0.5)",
+                }}
+                cursor={{ fill: "var(--glass)", stroke: "var(--stroke)" }}
                 formatter={(v) => [`${v}%`, "Rain probability"]}
               />
               <Bar dataKey="prob" radius={[6, 6, 2, 2]}>

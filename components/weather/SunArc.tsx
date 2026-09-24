@@ -39,7 +39,7 @@ export default function SunArc({ sunrise, sunset, nowEpoch }: { sunrise: string;
 
   return (
     <div className="glass-soft card-lift p-4 md:p-5" role="img" aria-label={`Sunrise ${fmt(sunrise)}, sunset ${fmt(sunset)}`}>
-      <h3 className="kicker mb-1">Sun path</h3>
+      <h3 className="kicker kicker-rule mb-1">Sun path</h3>
       <svg viewBox="0 0 200 100" className="w-full" aria-hidden>
         <defs>
           <linearGradient id="sunArcGrad" x1="0" y1="0" x2="1" y2="0">

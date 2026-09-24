@@ -74,7 +74,7 @@ export default function WeatherIcon({ condition, size = 56, className = "", labe
     case "night":
       return (
         <svg {...common}>
-          <path d="M40 36a14 14 0 1 1-18-21 11 11 0 0 0 18 21z" fill="#C4B5FD" />
+          <path className="icon-moon" d="M40 36a14 14 0 1 1-18-21 11 11 0 0 0 18 21z" fill="#C4B5FD" />
           <circle className="anim-twinkle" cx="46" cy="14" r="1.8" fill="#fff" />
           <circle className="anim-twinkle" style={{ animationDelay: "1s" }} cx="54" cy="26" r="1.4" fill="#fff" />
           <circle className="anim-twinkle" style={{ animationDelay: "2s" }} cx="38" cy="8" r="1.2" fill="#fff" />

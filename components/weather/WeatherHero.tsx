@@ -1,8 +1,9 @@
 "use client";
 
-import { motion, AnimatePresence, useSpring, useTransform } from "motion/react";
+import { motion, AnimatePresence, useSpring, useTransform, useReducedMotion } from "motion/react";
 import { useEffect } from "react";
 import { Star, MapPin } from "lucide-react";
+import { SPRING, motionTransition } from "@/lib/motion";
 import { formatTemp } from "@/lib/weather/units";
 import { moodSentence } from "@/lib/weather/mood";
 import { mapCondition } from "@/lib/weather/conditions";
@@ -30,6 +31,7 @@ interface Props {
 /** Visual centerpiece (§10): location → giant temp → condition → feels-like → mood. */
 export default function WeatherHero({ data, unit, isFavorite, onToggleFavorite, usingGeo, updatedAgo }: Props) {
   const { current, location } = data;
+  const reduced = useReducedMotion();
   const condition = mapCondition(current.icon, current.conditions);
   const hour = new Date(current.datetimeEpoch * 1000).getHours();
   const key = `${location.name}-${Math.round(current.temperature)}-${current.icon}`;
@@ -39,10 +41,10 @@ export default function WeatherHero({ data, unit, isFavorite, onToggleFavorite, 
       <AnimatePresence mode="wait">
         <motion.div
           key={key}
-          initial={{ opacity: 0, y: 20, scale: 0.98 }}
-          animate={{ opacity: 1, y: 0, scale: 1 }}
-          exit={{ opacity: 0, y: -12, scale: 0.99 }}
-          transition={{ duration: 0.45, ease: "easeOut" }}
+          initial={reduced ? { opacity: 0 } : { opacity: 0, y: 20, scale: 0.98 }}
+          animate={reduced ? { opacity: 1 } : { opacity: 1, y: 0, scale: 1 }}
+          exit={{ opacity: 0 }}
+          transition={motionTransition(reduced)}
         >
           <div className="flex items-center justify-center gap-2 text-sm opacity-70">
             <MapPin aria-hidden className="h-4 w-4" />
@@ -62,7 +64,7 @@ export default function WeatherHero({ data, unit, isFavorite, onToggleFavorite, 
                 key={String(isFavorite)}
                 initial={{ scale: 0.4 }}
                 animate={{ scale: 1 }}
-                transition={{ type: "spring", stiffness: 500, damping: 15 }}
+                transition={reduced ? { duration: 0.15 } : SPRING}
                 className="block"
               >
                 <Star aria-hidden className={`h-5 w-5 ${isFavorite ? "fill-amber-300 text-amber-300" : "opacity-60"}`} />

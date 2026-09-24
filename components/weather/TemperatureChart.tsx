@@ -32,7 +32,7 @@ export default function TemperatureChart({ previous, next, timezone, unit }: Pro
     <section aria-label="Temperature graph" className="mx-auto w-full max-w-6xl px-4 pt-6">
       <div className="glass chart-glow p-4 md:p-5">
         <div className="mb-2 flex items-baseline justify-between">
-          <h2 className="kicker">Temperature · 48 hours</h2>
+          <h2 className="kicker kicker-rule">Temperature · 48 hours</h2>
           <span className="text-xs opacity-50">°{unit}</span>
         </div>
         <div className="h-56 w-full md:h-64" role="img" aria-label={`Temperature over 48 hours in degrees ${unit}. Past shown in slate, future in sky blue.`}>
@@ -52,7 +52,16 @@ export default function TemperatureChart({ previous, next, timezone, unit }: Pro
               <XAxis dataKey="label" tick={{ fill: "var(--ink-soft)", fontSize: 11 }} interval={5} tickLine={false} axisLine={false} />
               <YAxis tick={{ fill: "var(--ink-soft)", fontSize: 11 }} tickLine={false} axisLine={false} domain={["auto", "auto"]} />
               <Tooltip
-                contentStyle={{ background: "rgba(7,17,31,0.92)", border: "1px solid rgba(255,255,255,0.15)", borderRadius: 12, color: "#fff" }}
+                contentStyle={{
+                  background: "var(--sheet)",
+                  border: "1px solid var(--stroke)",
+                  borderRadius: 12,
+                  color: "var(--ink)",
+                  backdropFilter: "blur(12px)",
+                  WebkitBackdropFilter: "blur(12px)",
+                  boxShadow: "0 12px 32px -12px rgba(2, 6, 23, 0.5)",
+                }}
+                cursor={{ stroke: "var(--accent)", strokeDasharray: "3 3", strokeWidth: 1.5 }}
                 labelFormatter={(l) => `${l}`}
                 formatter={(v, name) => [`${v}°${unit}`, name === "future" ? "Forecast" : "Observed"]}
               />

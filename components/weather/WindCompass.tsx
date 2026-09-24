@@ -45,7 +45,7 @@ export default function WindCompass({ speed, direction }: { speed: number; direc
         <span className="absolute left-1/2 top-1/2 h-2 w-2 -translate-x-1/2 -translate-y-1/2 rounded-full bg-white" />
       </div>
       <div>
-        <h3 className="kicker">Wind</h3>
+        <h3 className="kicker kicker-rule">Wind</h3>
         <p className="tabular mt-1 text-2xl font-semibold">{windLabel(speed)}</p>
         <p className="text-soft text-sm">{compassLabel(direction)} · {Math.round(direction)}°</p>
       </div>

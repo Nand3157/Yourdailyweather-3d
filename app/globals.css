@@ -7,6 +7,7 @@
   --bg-1: #07111f;
   --glass: rgba(255, 255, 255, 0.08);
   --glass-strong: rgba(255, 255, 255, 0.12);
+  --sheet: rgba(11, 18, 32, 0.94); /* dialog tier — content stops here */
   --stroke: rgba(255, 255, 255, 0.12);
   --ink: #ffffff;
   --ink-soft: rgba(255, 255, 255, 0.65);
@@ -21,6 +22,7 @@
   --bg-0: #dfe8f2;
   --glass: rgba(255, 255, 255, 0.62);
   --glass-strong: rgba(255, 255, 255, 0.8);
+  --sheet: rgba(248, 250, 253, 0.96); /* dialog tier — content stops here */
   --stroke: rgba(15, 23, 42, 0.12);
   --ink: #0b1220;
   --ink-soft: rgba(11, 18, 32, 0.62);
@@ -68,8 +70,8 @@ body {
 
 .glass {
   background: var(--glass);
-  backdrop-filter: blur(24px) saturate(1.35);
-  -webkit-backdrop-filter: blur(24px) saturate(1.35);
+  backdrop-filter: blur(20px) saturate(1.3);
+  -webkit-backdrop-filter: blur(20px) saturate(1.3);
   border: 1px solid var(--stroke);
   border-radius: 24px;
   box-shadow:
@@ -79,13 +81,28 @@ body {
 
 .glass-soft {
   background: var(--glass);
-  backdrop-filter: blur(16px) saturate(1.25);
-  -webkit-backdrop-filter: blur(16px) saturate(1.25);
+  backdrop-filter: blur(14px) saturate(1.2);
+  -webkit-backdrop-filter: blur(14px) saturate(1.2);
   border: 1px solid var(--stroke);
   border-radius: 20px;
   box-shadow:
     inset 0 1px 0 var(--bevel-hi),
     inset 0 -1px 0 var(--bevel-lo);
+}
+
+/* Sheet tier — for dialogs/overlays. Nearly opaque so page content can
+   never bleed through; blur softens whatever little shows. NN/g: glass
+   must separate foreground from background, not just tint it. */
+.glass-sheet {
+  background: var(--sheet);
+  backdrop-filter: blur(20px) saturate(1.2);
+  -webkit-backdrop-filter: blur(20px) saturate(1.2);
+  border: 1px solid var(--stroke);
+  border-radius: 24px;
+  box-shadow:
+    inset 0 1px 0 var(--bevel-hi),
+    inset 0 -1px 0 var(--bevel-lo),
+    0 24px 64px -24px rgba(2, 6, 23, 0.55);
 }
 
 /* Card recipe: beveled glass + accent glow on hover. */
@@ -130,8 +147,9 @@ body {
   opacity: 0.62;
 }
 
-/* Duotone accent underline for card headings. */
-.kicker::after {
+/* Duotone accent underline — SECTION headings only (opt-in). Card-level
+   kickers stay plain so the accent keeps its meaning through scarcity. */
+.kicker-rule::after {
   content: "";
   display: block;
   width: 28px;
@@ -140,6 +158,9 @@ body {
   border-radius: 2px;
   background: linear-gradient(90deg, var(--accent), var(--accent-2));
 }
+
+/* Recharts tooltips are themed inline via component props using the same
+   CSS vars (--sheet, --stroke, --ink) — see TemperatureChart/RainChart. */
 
 /* Recharts canvases get a soft aura so data feels part of the atmosphere. */
 .chart-glow svg {
@@ -247,6 +268,11 @@ input[type="range"]::-moz-range-thumb {
 @keyframes twinkle {
   0%, 100% { opacity: 0.25; }
   50% { opacity: 1; }
+}
+
+/* Night moon needs ≥3:1 against light glass — deepened in light theme. */
+.light .icon-moon {
+  fill: #6d5ba8;
 }
 @keyframes fogslide {
   0%, 100% { transform: translateX(-10px); opacity: 0.5; }

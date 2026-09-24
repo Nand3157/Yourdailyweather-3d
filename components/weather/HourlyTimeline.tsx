@@ -1,7 +1,8 @@
 "use client";
 
 import { useEffect, useRef } from "react";
-import { motion } from "motion/react";
+import { motion, useReducedMotion } from "motion/react";
+import { motionTransition } from "@/lib/motion";
 import { formatTemp } from "@/lib/weather/units";
 import { mapCondition } from "@/lib/weather/conditions";
 import WeatherIcon from "./WeatherIcon";
@@ -26,6 +27,7 @@ export default function HourlyTimeline({
   unit: "C" | "F";
 }) {
   const nowRef = useRef<HTMLDivElement>(null);
+  const reduced = useReducedMotion();
 
   useEffect(() => {
     nowRef.current?.scrollIntoView({ inline: "center", block: "nearest", behavior: "smooth" });
@@ -35,10 +37,10 @@ export default function HourlyTimeline({
     <motion.div
       key={`${h.timestamp}-${accent}`}
       ref={accent === "now" ? nowRef : undefined}
-      initial={{ opacity: 0, y: 16 }}
-      whileInView={{ opacity: 1, y: 0 }}
+      initial={reduced ? { opacity: 0 } : { opacity: 0, y: 16 }}
+      whileInView={reduced ? { opacity: 1 } : { opacity: 1, y: 0 }}
       viewport={{ once: true }}
-      transition={{ delay: Math.min(i * 0.02, 0.4) }}
+      transition={{ ...motionTransition(reduced), delay: reduced ? 0 : Math.min(i * 0.02, 0.4) }}
       className={`flex w-[76px] shrink-0 snap-center flex-col items-center gap-1.5 rounded-2xl border px-2 py-3 text-center transition-transform hover:-translate-y-0.5 ${
         accent === "now"
           ? "border-sky-300/60 bg-sky-400/20 font-semibold shadow-[0_0_24px_rgba(56,189,248,0.35)]"

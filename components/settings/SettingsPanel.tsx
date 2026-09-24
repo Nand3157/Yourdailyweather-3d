@@ -28,7 +28,7 @@ export default function SettingsPanel(p: Props) {
             animate={{ opacity: 1 }}
             exit={{ opacity: 0 }}
             onClick={p.onClose}
-            className="fixed inset-0 z-50 bg-black/50"
+            className="fixed inset-0 z-50 bg-black/60 backdrop-blur-sm"
             aria-hidden
           />
           <motion.aside
@@ -38,8 +38,8 @@ export default function SettingsPanel(p: Props) {
             initial={{ x: "100%" }}
             animate={{ x: 0 }}
             exit={{ x: "100%" }}
-            transition={{ type: "spring", stiffness: 300, damping: 32 }}
-            className="glass fixed right-0 top-0 z-50 flex h-full w-full max-w-sm flex-col !rounded-none border-y-0 border-r-0 p-6"
+            transition={{ type: "spring", stiffness: 260, damping: 30 }}
+            className="glass-sheet fixed right-0 top-0 z-50 flex h-full w-full max-w-sm flex-col !rounded-none border-y-0 border-r-0 p-6"
           >
             <div className="mb-6 flex items-center justify-between">
               <h2 className="text-xl font-semibold">Settings</h2>

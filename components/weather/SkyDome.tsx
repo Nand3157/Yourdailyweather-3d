@@ -165,18 +165,19 @@ export default function SkyDome({
     []
   );
 
-  // Palette updates without re-creating the material (smooth scene transitions).
-  useMemo(() => {
-    uniforms.uHorizon.value.set(palette.horizon);
-    uniforms.uZenith.value.set(palette.zenith);
-    uniforms.uCloud.value.set(palette.cloud);
-    uniforms.uCloudLit.value.set(palette.cloudLit);
-    uniforms.uHalo.value.set(palette.halo);
-    uniforms.uCover.value = palette.cloudCover;
-    uniforms.uSpeed.value = palette.cloudSpeed;
-    uniforms.uAurora.value = palette.aurora;
-    uniforms.uStars.value = palette.stars;
-  }, [palette, uniforms]);
+  // Palette targets (allocated once per palette change); useFrame damps the
+  // live uniforms toward them so scenes DISSOLVE over ~1.5s instead of
+  // snapping — cinematic weather transitions.
+  const targets = useMemo(
+    () => ({
+      horizon: new THREE.Color(palette.horizon),
+      zenith: new THREE.Color(palette.zenith),
+      cloud: new THREE.Color(palette.cloud),
+      cloudLit: new THREE.Color(palette.cloudLit),
+      halo: new THREE.Color(palette.halo),
+    }),
+    [palette]
+  );
 
   useFrame((state, rawDt) => {
     const dt = Math.min(rawDt, 0.05);
@@ -185,6 +186,20 @@ export default function SkyDome({
     uniforms.uEnergy.value = fx.energy;
     uniforms.uShiftX.value = fx.px * 0.02;
     uniforms.uShiftY.value = -fx.sScroll * 0.06;
+
+    // Scene cross-fade: ease every visual uniform toward its target.
+    // lambda 1.6 ≈ 63% settled per second → a soft ~1.5–2s dissolve.
+    const LAMBDA = 1.6;
+    const k = 1 - Math.exp(-LAMBDA * dt);
+    uniforms.uHorizon.value.lerp(targets.horizon, k);
+    uniforms.uZenith.value.lerp(targets.zenith, k);
+    uniforms.uCloud.value.lerp(targets.cloud, k);
+    uniforms.uCloudLit.value.lerp(targets.cloudLit, k);
+    uniforms.uHalo.value.lerp(targets.halo, k);
+    uniforms.uCover.value = THREE.MathUtils.damp(uniforms.uCover.value, palette.cloudCover, LAMBDA, dt);
+    uniforms.uSpeed.value = THREE.MathUtils.damp(uniforms.uSpeed.value, palette.cloudSpeed, LAMBDA, dt);
+    uniforms.uAurora.value = THREE.MathUtils.damp(uniforms.uAurora.value, palette.aurora, LAMBDA, dt);
+    uniforms.uStars.value = THREE.MathUtils.damp(uniforms.uStars.value, palette.stars, LAMBDA, dt);
 
     // Lightning scheduler: double strike per 6.5s cycle, tap adds its own.
     if (storm) {

@@ -1,6 +1,7 @@
 "use client";
 
-import { motion } from "motion/react";
+import { motion, useReducedMotion } from "motion/react";
+import { motionTransition } from "@/lib/motion";
 import { Star } from "lucide-react";
 
 /** Saved locations in localStorage (§21). */
@@ -11,6 +12,7 @@ export default function FavoriteLocations({
   current: string;
   onSelect: (l: string) => void;
 }) {
+  const reduced = useReducedMotion();
   if (!favorites.length) return null;
   return (
     <section aria-label="Favorite locations" className="mx-auto w-full max-w-6xl px-4 pt-6">
@@ -20,7 +22,13 @@ export default function FavoriteLocations({
         </h2>
         <ul className="flex flex-wrap gap-2">
           {favorites.map((f) => (
-            <motion.li key={f} layout initial={{ opacity: 0, scale: 0.9 }} animate={{ opacity: 1, scale: 1 }}>
+            <motion.li
+              key={f}
+              layout
+              initial={reduced ? { opacity: 0 } : { opacity: 0, scale: 0.9 }}
+              animate={reduced ? { opacity: 1 } : { opacity: 1, scale: 1 }}
+              transition={motionTransition(reduced)}
+            >
               <button
                 type="button"
                 onClick={() => onSelect(f)}

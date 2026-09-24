@@ -1,6 +1,7 @@
 "use client";
 
-import { motion } from "motion/react";
+import { motion, useReducedMotion } from "motion/react";
+import { motionTransition } from "@/lib/motion";
 import { Thermometer, Wind, CloudRain, Droplets } from "lucide-react";
 import { formatTemp, windLabel } from "@/lib/weather/units";
 import { compassLabel } from "@/lib/weather/conditions";
@@ -9,12 +10,13 @@ import type { CurrentWeather } from "@/lib/weather/types";
 function Card({ icon, label, value, sub, valueLabel, index }: {
   icon: React.ReactNode; label: string; value: string; sub: string; valueLabel: string; index: number;
 }) {
+  const reduced = useReducedMotion();
   return (
     <motion.div
-      initial={{ opacity: 0, y: 20 }}
-      whileInView={{ opacity: 1, y: 0 }}
+      initial={reduced ? { opacity: 0 } : { opacity: 0, y: 20 }}
+      whileInView={reduced ? { opacity: 1 } : { opacity: 1, y: 0 }}
       viewport={{ once: true, margin: "-40px" }}
-      transition={{ delay: index * 0.06, duration: 0.4 }}
+      transition={{ ...motionTransition(reduced), delay: reduced ? 0 : index * 0.06 }}
       className="glass-soft card-lift p-4 text-left md:p-5"
     >
       <div className="flex items-center gap-2">
