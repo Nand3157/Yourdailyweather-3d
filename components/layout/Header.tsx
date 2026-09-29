@@ -1,6 +1,7 @@
 "use client";
 
 import { motion } from "motion/react";
+import { useEffect, useState } from "react";
 import { RefreshCw, Moon, Sun, Settings, CloudSun } from "lucide-react";
 import LocationSearch from "../search/LocationSearch";
 
@@ -20,15 +21,35 @@ interface Props {
 
 /** Minimal floating header (§9). */
 export default function Header(p: Props) {
+  // Solid glass backdrop only once the header is actually stuck — at the top
+  // of the page it floats free; scrolled, content must not bleed through it.
+  const [stuck, setStuck] = useState(false);
+  useEffect(() => {
+    const onScroll = () => setStuck(window.scrollY > 8);
+    onScroll();
+    window.addEventListener("scroll", onScroll, { passive: true });
+    return () => window.removeEventListener("scroll", onScroll);
+  }, []);
+
   return (
     <motion.header
       initial={{ opacity: 0, y: -16 }}
       animate={{ opacity: 1, y: 0 }}
-      className="sticky top-0 z-40 mx-auto flex w-full max-w-6xl flex-col gap-3 px-4 pt-4 md:flex-row md:items-center md:gap-4"
+      style={
+        stuck
+          ? {
+              background: "var(--sheet)",
+              backdropFilter: "blur(20px) saturate(1.3)",
+              WebkitBackdropFilter: "blur(20px) saturate(1.3)",
+              boxShadow: "0 8px 32px -16px rgba(2, 6, 23, 0.5)",
+            }
+          : undefined
+      }
+      className="sticky top-0 z-40 mx-auto flex w-full max-w-6xl flex-col gap-3 px-4 pb-2 pt-4 transition-shadow duration-300 md:flex-row md:items-center md:gap-4"
     >
-      <div className="flex items-center justify-between md:w-auto">
-        <div className="flex items-center gap-2" aria-label="Atmospheric Weather home">
-          <CloudSun aria-hidden className="h-7 w-7 text-amber-300" />
+      <div className="flex min-w-0 items-center justify-between md:w-auto">
+        <div className="flex shrink-0 items-center gap-2" aria-label="Atmospheric Weather home">
+          <CloudSun aria-hidden className="h-7 w-7 shrink-0 text-amber-400 dark:text-amber-300" />
           <div className="leading-none">
             <p className="wordmark text-sm font-bold tracking-[0.22em]">ATMOSPHERIC</p>
             <p className="text-[11px] tracking-[0.34em] opacity-60">WEATHER</p>

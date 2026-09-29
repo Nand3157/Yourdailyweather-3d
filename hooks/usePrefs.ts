@@ -1,7 +1,10 @@
 "use client";
 
-import { useCallback, useEffect, useState } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
 import { clampLevel } from "@/lib/weather/units";
+import { themeBySun, type ThemePref } from "@/lib/weather/theme";
+
+export type { ThemePref } from "@/lib/weather/theme";
 
 function read<T>(key: string, fallback: T): T {
   try {
@@ -43,34 +46,62 @@ export function useUnit() {
   return { unit, setUnit: change };
 }
 
-export type ThemePref = "system" | "light" | "dark";
-
 export function useThemePref() {
   const [pref, setPref] = useState<ThemePref>("system");
   const [resolved, setResolved] = useState<"light" | "dark">("dark");
+  // Refs so the resolve path never depends on state timing: prefRef is the
+  // source of truth for "is the user following the sun?".
+  const prefRef = useRef<ThemePref>("system");
+  // Sun context of the SEARCHED LOCATION, from the loaded weather payload.
+  const sunRef = useRef<{ timezone: string | null; sunrise: string | null; sunset: string | null }>({
+    timezone: null,
+    sunrise: null,
+    sunset: null,
+  });
+
+  const resolveSystem = useCallback(
+    () => themeBySun(Date.now(), sunRef.current.timezone, sunRef.current.sunrise, sunRef.current.sunset),
+    []
+  );
+
   useEffect(() => {
     const saved = read<ThemePref>("aw-theme", "system");
+    prefRef.current = saved;
     setPref(saved);
-    const mq = window.matchMedia("(prefers-color-scheme: light)");
-    const apply = () => setResolved(saved === "system" ? (mq.matches ? "light" : "dark") : saved);
-    apply();
-    mq.addEventListener("change", apply);
-    return () => mq.removeEventListener("change", apply);
+    setResolved(saved === "system" ? themeBySun(Date.now(), null, null) : saved);
   }, []);
   useEffect(() => {
     document.documentElement.classList.toggle("light", resolved === "light");
     document.documentElement.classList.toggle("dark", resolved === "dark");
     document.documentElement.style.colorScheme = resolved;
   }, [resolved]);
-  const change = useCallback((p: ThemePref) => {
-    setPref(p);
-    try {
-      localStorage.setItem("aw-theme", JSON.stringify(p));
-    } catch {}
-    if (p !== "system") setResolved(p);
-    else setResolved(window.matchMedia("(prefers-color-scheme: light)").matches ? "light" : "dark");
-  }, []);
-  return { pref, resolved, setPref: change };
+  const change = useCallback(
+    (p: ThemePref) => {
+      prefRef.current = p;
+      setPref(p);
+      try {
+        localStorage.setItem("aw-theme", JSON.stringify(p));
+      } catch {}
+      setResolved(p === "system" ? resolveSystem() : p);
+    },
+    [resolveSystem]
+  );
+  /** Page calls this when a location's weather loads. */
+  const setSunTimes = useCallback(
+    (ctx: { timezone: string; sunrise?: string; sunset?: string }) => {
+      sunRef.current = {
+        timezone: ctx.timezone || null,
+        sunrise: ctx.sunrise ?? null,
+        sunset: ctx.sunset ?? null,
+      };
+      // Re-resolve only when following the sun (system pref, no manual pick).
+      if (prefRef.current === "system") {
+        setResolved(themeBySun(Date.now(), sunRef.current.timezone, sunRef.current.sunrise, sunRef.current.sunset));
+      }
+    },
+    []
+  );
+  return { pref, resolved, setPref: change, setSunTimes };
 }
 
 export function useEffectsPref() {

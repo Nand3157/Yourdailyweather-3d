@@ -1,6 +1,6 @@
 "use client";
 
-import { useMemo, useRef, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import dynamic from "next/dynamic";
 import { motion } from "motion/react";
 import { Share2 } from "lucide-react";
@@ -57,7 +57,7 @@ export default function Home() {
   const { data, loading, refreshing, error, location, load, refresh, usingGeo, updatedAgo } = useWeather();
   const { favorites, toggle } = useFavorites();
   const { unit, setUnit } = useUnit();
-  const { resolved, setPref } = useThemePref();
+  const { resolved, setPref, setSunTimes } = useThemePref();
   const { effects, setEffects } = useEffectsPref();
   const { level, setLevel } = useIntensity();
   const [settingsOpen, setSettingsOpen] = useState(false);
@@ -91,6 +91,14 @@ export default function Home() {
   const nowEpoch = data?.current.datetimeEpoch ?? Math.floor(Date.now() / 1000);
   const sunriseEpoch = useMemo(() => dayEpoch(data?.sunrise, nowEpoch), [data?.sunrise, nowEpoch]);
   const sunsetEpoch = useMemo(() => dayEpoch(data?.sunset, nowEpoch), [data?.sunset, nowEpoch]);
+
+  // Theme follows the sun at the SEARCHED LOCATION (its own timezone &
+  // sunrise/sunset) — only while the pref is "system" (no manual pick).
+  useEffect(() => {
+    if (data) {
+      setSunTimes({ timezone: data.timezone, sunrise: data.sunrise, sunset: data.sunset });
+    }
+  }, [data, setSunTimes]);
   const { tod, scene } = useMemo(
     () => resolveHeroInput(condition, nowEpoch, sunriseEpoch, sunsetEpoch),
     [condition, nowEpoch, sunriseEpoch, sunsetEpoch]

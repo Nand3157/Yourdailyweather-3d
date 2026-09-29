@@ -33,6 +33,28 @@
   --glow: rgba(2, 132, 199, 0.16);
 }
 
+/* Chart semantic colors — rain bars stay readable on glass in both themes. */
+:root {
+  --chart-low: rgba(125, 211, 252, 0.55);
+  --chart-mid: #7dd3fc;
+  --chart-high: #38bdf8;
+}
+
+.light {
+  --chart-low: rgba(2, 132, 199, 0.4);
+  --chart-mid: #0284c7;
+  --chart-high: #0369a1;
+}
+
+/* Light theme: hard-coded white-alpha utilities vanish on the paper sky.
+   Remap the common ones to ink-alpha so chips, buttons and hovers keep
+   contrast without touching every component. */
+.light .bg-white\/5 { background-color: rgba(15, 23, 42, 0.05); }
+.light .bg-white\/10 { background-color: rgba(15, 23, 42, 0.08); }
+.light .hover\\:bg-white\/10:hover { background-color: rgba(15, 23, 42, 0.08); }
+.light .hover\\:bg-white\/20:hover { background-color: rgba(15, 23, 42, 0.14); }
+.light .border-white\/10 { border-color: rgba(15, 23, 42, 0.14); }
+
 .light .glass,
 .light .glass-soft {
   box-shadow:
@@ -51,6 +73,14 @@
 html {
   scroll-behavior: smooth;
 }
+
+/* Placeholder legibility — 40% ink is too faint on the paper sky. */
+.light ::placeholder {
+  opacity: 0.62;
+}
+
+/* Rain chart: 0% bars are invisible by definition — the empty state hint
+   renders in RainChart.tsx instead, no special CSS needed. */
 
 body {
   font-family: Inter, Manrope, Geist, system-ui, -apple-system, sans-serif;

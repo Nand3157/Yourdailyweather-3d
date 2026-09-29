@@ -6,6 +6,7 @@ import * as THREE from "three";
 import type { HeroScene, TimeOfDay, HeroFx } from "@/lib/weather/hero";
 import { skyPaletteFor } from "@/lib/weather/sky";
 import SkyDome from "./SkyDome";
+import FluidField from "./FluidField";
 
 /**
  * ╔════════════════════════════════════════════════════╗
@@ -26,6 +27,12 @@ import SkyDome from "./SkyDome";
  *  Single Canvas, 5 scene branches, unified input → output.
  *  ForegroundFx (2D rain over UI) stays separate for click safety,
  *  but the HERO field behind the glass is fully driven here.
+ *
+ *  FluidField (the silk-streak fluid centerpiece) takes over this Canvas's
+ *  render loop (priority 1): it runs the trail-sim passes, then renders the
+ *  scene (SkyDome, particles…), then composites the fluid veil on top in
+ *  exact screen space. All other components keep their default-priority
+ *  useFrame hooks — they only mutate state; FluidField does the drawing.
  */
 
 // ─────────────────────────────────────────────────────
@@ -447,6 +454,17 @@ export default function HeroEngine({
 
         {/* Extra storm veil */}
         {isStorm && <FogLayers fx={fx} />}
+
+        {/* ── The fluid centerpiece — takes over rendering (see header) ── */}
+        <FluidField
+          scene={scene}
+          tod={tod}
+          intensity={intensity}
+          windSpeed={windSpeed}
+          fx={fx}
+          theme={theme}
+          quality={quality}
+        />
       </Canvas>
     </div>
   );

@@ -13,6 +13,7 @@ export default function RainChart({ hours, timezone }: { hours: HourlyWeather[];
     return { label, prob: Math.round(h.precipitationProbability) };
   });
   const max = Math.max(...data.map((d) => d.prob), 0);
+  const dry = max === 0;
 
   return (
     <section aria-label="Chance of rain" className="mx-auto w-full max-w-6xl px-4 pt-6">
@@ -21,7 +22,25 @@ export default function RainChart({ hours, timezone }: { hours: HourlyWeather[];
           <h2 className="kicker kicker-rule">Chance of rain</h2>
           <span className="tabular text-xs opacity-50">Peak {max}%</span>
         </div>
-        <div className="h-40 w-full" role="img" aria-label={`Hourly rain probability, peaking at ${max} percent.`}>
+        {dry ? (
+          // Empty state: state the fact plainly, keep the card height stable
+          // so the layout doesn't jump when rain returns.
+          <div
+            className="flex h-40 w-full flex-col items-center justify-center gap-2 rounded-xl border border-dashed"
+            style={{ borderColor: "var(--stroke)" }}
+            role="img"
+            aria-label="Hourly rain probability: no rain expected in the next 24 hours."
+          >
+            <span className="text-2xl" aria-hidden>
+              &#x2600;
+            </span>
+            <p className="text-sm font-medium">No rain expected in the next 24 hours</p>
+            <p className="text-xs" style={{ color: "var(--ink-soft)" }}>
+              Hourly probability stays at 0% through tomorrow.
+            </p>
+          </div>
+        ) : (
+          <div className="h-40 w-full" role="img" aria-label={`Hourly rain probability, peaking at ${max} percent.`}>
           <ResponsiveContainer width="100%" height="100%">
             <BarChart data={data} margin={{ top: 8, right: 8, bottom: 0, left: -22 }}>
               <XAxis dataKey="label" tick={{ fill: "var(--ink-soft)", fontSize: 11 }} interval={5} tickLine={false} axisLine={false} />
@@ -41,12 +60,16 @@ export default function RainChart({ hours, timezone }: { hours: HourlyWeather[];
               />
               <Bar dataKey="prob" radius={[6, 6, 2, 2]}>
                 {data.map((d, i) => (
-                  <Cell key={i} fill={d.prob >= 60 ? "#38BDF8" : d.prob >= 30 ? "#7DD3FC" : "rgba(125,211,252,0.35)"} />
+                  <Cell
+                    key={i}
+                    fill={d.prob >= 60 ? "var(--chart-high)" : d.prob >= 30 ? "var(--chart-mid)" : "var(--chart-low)"}
+                  />
                 ))}
               </Bar>
             </BarChart>
           </ResponsiveContainer>
-        </div>
+          </div>
+        )}
       </div>
     </section>
   );
