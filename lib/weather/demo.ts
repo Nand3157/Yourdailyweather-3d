@@ -77,6 +77,28 @@ export function demoResponse(query: string, sceneParam?: string): WeatherRespons
   });
   const anchor = hours.findIndex((h) => h.timestamp >= now);
 
+  // Daily summary cards for the 7-day outlook strip.
+  const daily = Array.from({ length: 7 }, (_, i) => {
+    const dayTemp = cfg.temp + Math.sin(i * 1.1) * 3;
+    const wetDay = (scene === "storm" || scene === "rain") && i < 3;
+    return {
+      date: now + i * 86_400 - (now % 86_400),
+      tempMin: Math.round((dayTemp - 5) * 10) / 10,
+      tempMax: Math.round((dayTemp + 3) * 10) / 10,
+      precipitationProbability: wetDay ? cfg.precipProb : Math.round(cfg.precipProb * 0.3),
+      precipitation: wetDay ? 2.1 : 0,
+      windSpeed: cfg.wind + (i % 4),
+      windDirection: (300 + i * 12) % 360,
+      humidity: cfg.humidity,
+      uvIndex: scene === "clear-day" ? 7 + (i % 3) : 2,
+      conditions: wetDay ? cfg.conditions : scene === "cloudy" ? "Cloudy" : cfg.conditions,
+      icon: wetDay ? cfg.icon : scene === "cloudy" ? "cloudy" : cfg.icon,
+      sunrise: "06:32",
+      sunset: "18:55",
+      isToday: i === 0,
+    };
+  });
+
   return {
     location: { name: (query || "Ahmedabad").split(",")[0].trim(), country: "India", latitude: 23.0225, longitude: 72.5714, timezone: "Asia/Kolkata" },
     current: {
@@ -101,6 +123,7 @@ export function demoResponse(query: string, sceneParam?: string): WeatherRespons
     },
     previous24Hours: hours.slice(Math.max(0, anchor - 24), anchor).map((h) => ({ ...h, isPast: true })),
     next24Hours: hours.slice(anchor, anchor + 24).map((h) => ({ ...h, isPast: false })),
+    daily,
     sunrise: "06:32",
     sunset: "18:55",
     timezone: "Asia/Kolkata",

@@ -15,8 +15,10 @@ import WeatherHero from "@/components/weather/WeatherHero";
 import WeatherStats from "@/components/weather/WeatherStats";
 import HourlyTimeline from "@/components/weather/HourlyTimeline";
 import TemperatureChart from "@/components/weather/TemperatureChart";
+import ForecastCard from "@/components/weather/ForecastCard";
 import RainChart from "@/components/weather/RainChart";
 import SunArc from "@/components/weather/SunArc";
+import AirQuality from "@/components/weather/AirQuality";
 import WindCompass from "@/components/weather/WindCompass";
 import FavoriteLocations from "@/components/favorites/FavoriteLocations";
 import SettingsPanel from "@/components/settings/SettingsPanel";
@@ -219,12 +221,17 @@ export default function Home() {
             />
             <WeatherStats current={data.current} unit={unit} />
             <TemperatureChart previous={data.previous24Hours} next={data.next24Hours} timezone={data.timezone} unit={unit} />
+            <ForecastCard days={data.daily} timezone={data.timezone} unit={unit} />
             <HourlyTimeline previous={prevHours} next={data.next24Hours} now={nowHour} timezone={data.timezone} unit={unit} />
             <RainChart hours={[...data.previous24Hours.slice(-12), ...data.next24Hours.slice(0, 12)]} timezone={data.timezone} />
 
             <section aria-label="Sun and wind" className="mx-auto grid w-full max-w-6xl gap-3 px-4 pt-6 md:grid-cols-2">
               <SunArc sunrise={data.sunrise} sunset={data.sunset} nowEpoch={nowEpoch} />
               <WindCompass speed={data.current.windSpeed} direction={data.current.windDirection} />
+            </section>
+
+            <section aria-label="Air quality" className="mx-auto w-full max-w-6xl px-4 pt-3">
+              <AirQuality lat={data.location.latitude} lon={data.location.longitude} />
             </section>
 
             <FavoriteLocations favorites={favorites} current={location} onSelect={(l) => void load(l)} />

@@ -12,7 +12,7 @@ const querySchema = z.object({
 });
 
 const ELEMENTS = [
-  "datetime", "datetimeEpoch", "temp", "feelslike", "humidity", "precip", "precipprob",
+  "datetime", "datetimeEpoch", "temp", "tempmin", "tempmax", "feelslike", "humidity", "precip", "precipprob",
   "preciptype", "windspeed", "winddir", "windgust", "visibility", "cloudcover", "uvindex",
   "conditions", "description", "icon", "pressure", "dew", "solarradiation", "sunrise", "sunset",
   "sunriseEpoch", "sunsetEpoch",

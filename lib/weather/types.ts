@@ -46,6 +46,23 @@ export interface HourlyWeather {
   isNow?: boolean;
 }
 
+export interface DailyForecast {
+  date: number; // epoch seconds — location-local midnight of that day
+  tempMin: number; // °C
+  tempMax: number; // °C
+  precipitationProbability: number; // %
+  precipitation: number; // mm
+  windSpeed: number; // km/h
+  windDirection: number; // degrees
+  humidity: number; // %
+  uvIndex?: number;
+  conditions: string;
+  icon: string;
+  sunrise?: string;
+  sunset?: string;
+  isToday: boolean;
+}
+
 export interface WeatherLocation {
   name: string;
   country: string;
@@ -59,6 +76,7 @@ export interface WeatherResponse {
   current: CurrentWeather;
   previous24Hours: HourlyWeather[];
   next24Hours: HourlyWeather[];
+  daily: DailyForecast[];
   sunrise: string;
   sunset: string;
   timezone: string;

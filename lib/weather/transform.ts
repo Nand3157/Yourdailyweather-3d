@@ -1,5 +1,5 @@
 import { z } from "zod";
-import type { CurrentWeather, HourlyWeather, WeatherResponse } from "./types";
+import type { CurrentWeather, DailyForecast, HourlyWeather, WeatherResponse } from "./types";
 
 /** Minimal VC Timeline shape — only fields we request (§4). */
 const vcHour = z
@@ -24,6 +24,8 @@ const vcDay = z
     datetime: z.string(),
     datetimeEpoch: z.number().optional(),
     temp: z.number().optional(),
+    tempmin: z.number().nullable().optional(),
+    tempmax: z.number().nullable().optional(),
     feelslike: z.number().nullable().optional(),
     humidity: z.number().nullable().optional(),
     precip: z.number().nullable().optional(),
@@ -33,13 +35,13 @@ const vcDay = z
     visibility: z.number().nullable().optional(),
     cloudcover: z.number().nullable().optional(),
     uvindex: z.number().nullable().optional(),
+    sunrise: z.string().nullable().optional(),
+    sunset: z.string().nullable().optional(),
     conditions: z.string().nullable().optional(),
     description: z.string().nullable().optional(),
     icon: z.string().nullable().optional(),
     pressure: z.number().nullable().optional(),
     dew: z.number().nullable().optional(),
-    sunrise: z.string().nullable().optional(),
-    sunset: z.string().nullable().optional(),
     sunriseEpoch: z.number().nullable().optional(),
     sunsetEpoch: z.number().nullable().optional(),
     hours: z.array(vcHour).optional(),
@@ -101,6 +103,29 @@ function toHour(h: z.infer<typeof vcHour>): HourlyWeather {
   };
 }
 
+/** Day-level shape for the 7-day outlook strip. */
+function toDay(d: z.infer<typeof vcDay>, i: number, nowSec: number): DailyForecast {
+  // Epoch for the day's local midnight — the day starts at 00:00 in the
+  // location's timezone, which is what datetimeEpoch points at.
+  const epoch = d.datetimeEpoch ?? nowSec + i * 86_400;
+  return {
+    date: epoch,
+    tempMin: d.tempmin ?? d.temp ?? 0,
+    tempMax: d.tempmax ?? d.temp ?? 0,
+    precipitationProbability: d.precipprob ?? 0,
+    precipitation: d.precip ?? 0,
+    windSpeed: d.windspeed ?? 0,
+    windDirection: d.winddir ?? 0,
+    humidity: d.humidity ?? 0,
+    uvIndex: d.uvindex ?? undefined,
+    conditions: d.conditions ?? "",
+    icon: d.icon ?? "",
+    sunrise: d.sunrise ?? undefined,
+    sunset: d.sunset ?? undefined,
+    isToday: i === 0,
+  };
+}
+
 /**
  * Shape VC payload into the app model, slicing real previous/next 24h
  * around the location's current hour (§5/35).
@@ -156,6 +181,15 @@ export function transformVc(raw: unknown, nowSec = Math.floor(Date.now() / 1000)
     next.push({ ...src, isPast: false });
   }
 
+  // 7-day daily outlook — first 7 days of the VC timeline response.
+  // `datetimeEpoch` on a day record is the location-local midnight.
+  const daily = vc.days.slice(0, 7).map((d, i) => toDay(d, i, nowSec));
+  // Guarantee 7 slots: extend with repeated last day rather than failing.
+  while (daily.length < 7 && daily.length > 0) {
+    const last = daily[daily.length - 1];
+    daily.push({ ...last, date: last.date + 86_400, isToday: false });
+  }
+
   return {
     location: {
       name: place || vc.resolvedAddress,
@@ -167,6 +201,7 @@ export function transformVc(raw: unknown, nowSec = Math.floor(Date.now() / 1000)
     current,
     previous24Hours: prev.slice(-24),
     next24Hours: next.slice(0, 24),
+    daily: daily.slice(0, 7),
     sunrise: current.sunrise ?? "",
     sunset: current.sunset ?? "",
     timezone: vc.timezone,
